@@ -1,0 +1,79 @@
+---
+title: "HEK293T_Mengrui"
+author: "MVI"
+date: "2024-02-02"
+output: html_document
+---
+
+Load in packages
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("DESeq2")
+BiocManager::install("arrayQualityMetrics")
+install.packages("gplots")
+install.packages("pheatmap")
+install.packages("vegan")
+install.packages("ggplot2")
+install.packages("ggrepel")
+install.packages("VennDiagram")
+install.packages("ggtext")
+install.packages("ggpubr")
+install.packages("reshape2")
+install.packages("tidyselect")
+install.packages("dplyr")
+
+library(DESeq2)
+library(arrayQualityMetrics)
+library(gplots)
+library(pheatmap)
+library(vegan)
+library(ggplot2)
+library(ggrepel)
+library(VennDiagram)
+library(ggtext)
+library(ggpubr)
+library(reshape2)
+library(tidyselect)
+library(dplyr)
+```
+
+Set your working directory (the entire path to the folder that contains this rmarkdown and your data files)
+```{r}
+knitr::opts_knit$set(root.dir = "/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Mengrui_HEK293T")
+#using the knitr option, it ensures that all chunks run in this rmd are performed in this working directory
+
+#check your working directory:
+getwd()
+```
+
+Open and inspect counts data (preprocessed using "tagseq_processing_HOWTO" on BU SCC)
+```{r}
+#load the count file into R and name it "countData"
+countData = read.table("./Mengrui_HEK293T_2024_counts.txt")
+
+#how long is the file (in other words, how many genes do you have count data for)?
+length(countData[,1])
+#59048
+
+#look at the first few rows of the your file
+head(countData)
+
+#rename each of your samples (each column) with shorter names
+newColNames = c("flag1_S33", "flag2_S34", "flag3_S35", "N1_S36", "N2_S37", "N3_S38", "NLS1_S39", "NLS2_S40", "NLS3_S41")
+colnames(countData)=paste(newColNames)
+length(countData[,1])
+#59048
+head(countData)
+
+#look at the distribution of your count data throughout your samples
+totalCounts=colSums(countData)
+barplot(totalCounts, col=c("mediumblue", "mediumblue", "mediumblue", "red", "red", "red", "darkgreen", "darkgreen", "darkgreen"), ylab="Raw Counts", xlab="HEK293T")
+#save as rawcounts_220123 as 6.5x4 landscape in Figures directory
+
+min(totalCounts)
+#480525     #533349
+max(totalCounts)
+#862648     #1303890
+```
+
