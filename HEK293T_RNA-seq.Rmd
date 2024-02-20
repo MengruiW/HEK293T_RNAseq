@@ -528,3 +528,32 @@ grid.draw(prettyvenn05)
 #saved as venn05_021924.pdf as landscape with 6x6 dimensions in Figures
 ```
 
+Looking at the shared 1213 degs, seeing if they go in the same direction in N and NLS
+```{r}
+intersect05 <- intersect(N_DEGs05, NLS_DEGs05)
+shared_N <- as.data.frame(res_N_Flag)[rownames(res_N_Flag) %in% intersect05, ] %>% select(log2FoldChange)
+N_name <- c("N_lfc")
+colnames(shared_N) <- N_name
+shared_NLS <- as.data.frame(res_NLS_Flag)[rownames(res_NLS_Flag) %in% intersect05, ] %>% select(log2FoldChange)
+NLS_name <- c("NLS_lfc")
+colnames(shared_NLS) <- NLS_name
+
+shared_both_lfc <- cbind(shared_N, shared_NLS)
+head(shared_both_lfc)
+
+ggscatter(shared_both_lfc, x = "N_lfc", y = "NLS_lfc", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "DEG LogFoldChange N", ylab = "DEG LogFoldChange NLS")+ theme(panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"))
+
+#saved as shared_DEGs05_correlation.pdf as landscape with 5x5
+#R=0.9, p<2.2e-16; there are no genes that are different in N and NLS 
+#let's pull out those 10 guys
+
+NUP_NLSDOWN <- shared_both_lfc[shared_both_lfc$N_lfc>0 & shared_both_lfc$NLS_lfc <0, ]
+NUP_NLSDOWN
+
+NDOWN_NLSUP <- shared_both_lfc[shared_both_lfc$N_lfc>0 & shared_both_lfc$NLS_lfc <0, ]
+NDOWN_NLSUP
+```
+
