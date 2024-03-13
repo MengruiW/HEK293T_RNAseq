@@ -624,3 +624,118 @@ write.csv(go_input_NNLS, file="./Data_Files/NNLS_GO_24.csv", quote=F, row.names=
 ```
 
 Making the emapper annotation files from the GRCh38 RefSeq proteins
+
+
+
+
+
+KEGG analysis:
+https://bioinformatics-core-shared-training.github.io/cruk-summer-school-2018/RNASeq2018/html/06_Gene_set_testing.nb.html#kegg-pathway-enrichment-analysis
+ my trial:
+BiocManager::install("clusterProfiler")
+BiocManager::install("pathview")
+BiocManager::install("enrichplot")
+
+library(clusterProfiler)
+library(enrichplot)
+
+search_kegg_organism('hsa', by='kegg_code')
+
+sigGenes <- res_N_Flag$Entrez[ res_N_Flag$FDR < 0.01 & 
+                              !is.na(res_N_Flag$FDR) &
+                              abs(res_N_Flag$log2FoldChange) > 1 ]
+sigGenes <- na.exclude(sigGenes)
+kk <- enrichKEGG(gene = sigGenes, organism = 'hsa')
+head(kk, n=10)
+
+sigGenes <- res_NLS_Flag$Entrez[ res_NLS_Flag$FDR < 0.01 & 
+                              !is.na(res_NLS_Flag$FDR) &
+                              abs(res_NLS_Flag$log2FoldChange) > 1 ]
+sigGenes <- na.exclude(sigGenes)
+kk <- enrichKEGG(gene = sigGenes, organism = 'hsa')
+head(kk, n=10)
+
+sigGenes <- res_N_NLS$Entrez[ res_N_NLS$FDR < 0.01 & 
+                              !is.na(res_N_NLS$FDR) &
+                              abs(res_N_NLS$log2FoldChange) > 1 ]
+sigGenes <- na.exclude(sigGenes)
+kk <- enrichKEGG(gene = sigGenes, organism = 'hsa')
+head(kk, n=10)
+#browseKEGG(kk, 'hsa??')
+library(pathview)
+
+updated from chatGPT
+```{r}
+# Install necessary packages
+BiocManager::install("clusterProfiler")
+BiocManager::install("pathview")
+BiocManager::install("enrichplot")
+
+# Load the libraries
+library(clusterProfiler)
+library(enrichplot)
+library(pathview)
+
+# Function to search for the KEGG organism code
+search_kegg_organism('hsa', by='kegg_code')
+
+
+# Define a function to perform KEGG enrichment and visualize results
+perform_kegg_analysis <- function(res, species = 'hsa', pathway.id = NULL) {
+  # Identify significant genes
+  sigGenes <- res$Entrez[ res$FDR < 0.01 & 
+                            !is.na(res$FDR) &
+                            abs(res$log2FoldChange) > 1 ]
+  sigGenes <- na.exclude(sigGenes)
+# Perform KEGG pathway enrichment analysis
+  kk <- enrichKEGG(gene = sigGenes, organism = species)
+  print(head(kk, n=10)) # Display top 10 enriched pathways
+  
+
+# Apply the function to each dataset and store the results
+datasets <- list(res_N_Flag, res_NLS_Flag, res_N_NLS)
+results <- lapply(datasets, perform_kegg_analysis)
+
+# Optionally, print results for each analysis
+lapply(results, print)
+
+# The browseKEGG function call is commented out, as it requires a specific pathway ID
+# Uncomment and modify the following line with a correct pathway ID to visualize it
+# browseKEGG(kk, 'hsa04921') # Example: Replace 'hsa04921' with your pathway ID
+
+# Load pathview for potential pathway visualization later
+library(pathview)
+
+
+  
+  
+  # Assuming you've already determined a pathway.id to visualize based on the enrichment results
+  if (!is.null(pathway.id)) {
+    logFC <- res$log2FoldChange[names(res$log2FoldChange) %in% sigGenes]
+    names(logFC) <- sigGenes
+    
+    # Visualize the pathway with gene data
+    pathview(gene.data = logFC, 
+             pathway.id = pathway.id, 
+             species = species, 
+             limit = list(gene=5, cpd=1))
+  } else {
+    cat("Pathway ID not provided. Skipping visualization.\n")
+  }
+}
+
+# Perform analysis and visualization for each dataset
+# Replace "pathway.id" with the actual ID obtained from the enrichment result that you wish to visualize.
+# You might need to manually set this ID based on your interest and findings from the enrichment analysis.
+
+perform_kegg_analysis(res_N_Flag, species = 'hsa', pathway.id = "hsa00010")
+perform_kegg_analysis(res_NLS_Flag, species = 'hsa', pathway.id = "hsa00020")
+perform_kegg_analysis(res_N_NLS, species = 'hsa', pathway.id = "hsa00030")
+
+# Note: The pathway IDs ("hsa00010", "hsa00020", "hsa00030") are placeholders.
+# You should replace them with the actual pathway IDs you're interested in visualizing.
+# Also, ensure the species code ('hsa' for Homo sapiens) matches your data's species.
+
+
+```
+
